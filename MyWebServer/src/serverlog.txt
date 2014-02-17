@@ -1,0 +1,194 @@
+----------------------------------------------------------------------------
+server boot up. 
+First load mime types from  a mime table file named mime.properties, This log shows it has 447 mime types in it.
+----------------------------------------------------------------------------
+
+Known mimetypes:447
+Swan Liu's Web server starting up, listening at port 2540.
+
+----------------------------------------------------------------------------
+
+ Visit action to server root . URL is http://127.0.0.1:2540/.  
+ 
+ All below log of http navigating action have two parts, 
+ 
+ First part is query content from client browser to my web server  ,then response content from server to client browser.
+ 
+----------------------------------------------------------------------------
+
+
+query is GET / HTTP/1.1
+GET / HTTP/1.1
+Host: 127.0.0.1:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 20:10:31 CST 2014
+Cache-Control: max-age=0
+
+queryString is 
+FileSystemService: client request 
+HTTP/1.1 200 OK
+Content-Length:878
+Content-Type:text/html
+Last-Modified:Sun Feb 16 20:11:11 CST 2014
+Connection: close
+
+<html><pre/><h1>Index of /</h1><a href="/">Parent Directory</a> <br><table><tr><td><a href="/.classpath" >.classpath </a></td><td> lastModified:Sun Feb 16 13:41:30 CST 2014</td><tr><td><a href="/.project" >.project </a></td><td> lastModified:Sun Feb 16 13:41:30 CST 2014</td><tr><td><a href="/.settings" >.settings </a></td><td> lastModified:Sun Feb 16 13:41:30 CST 2014</td><tr><td><a href="/bin" >bin </a></td><td> lastModified:Sun Feb 16 19:14:58 CST 2014</td><tr><td><a href="/cat.txt" >cat.txt </a></td><td> lastModified:Sun Feb 16 18:04:04 CST 2014</td><tr><td><a href="/favicon.ico" >favicon.ico </a></td><td> lastModified:Sun Feb 16 18:52:11 CST 2014</td><tr><td><a href="/mime.properties" >mime.properties </a></td><td> lastModified:Sun Feb 16 19:16:04 CST 2014</td><tr><td><a href="/src" >src </a></td><td> lastModified:Sun Feb 16 20:07:54 CST 2014</td></table></html>
+Exit worker with /127.0.0.1:53649.
+
+
+
+
+----------------------------------------------------------------------------
+ visit child folder /src. http://127.0.0.1:2540/src
+----------------------------------------------------------------------------
+
+query is GET /src HTTP/1.1
+GET /src HTTP/1.1
+Host: 127.0.0.1:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://127.0.0.1:2540/
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 20:07:56 CST 2014
+
+queryString is 
+FileSystemService: client request src
+HTTP/1.1 200 OK
+Content-Length:1703
+Content-Type:text/html
+Last-Modified:Sun Feb 16 20:12:29 CST 2014
+Connection: close
+
+<html><pre/><h1>Index of /src</h1><a href="/">Parent Directory</a> <br><table><tr><td><a href="/src/cat.txt" >cat.txt </a></td><td> lastModified:Sun Feb 16 18:04:04 CST 2014</td><tr><td><a href="/src/checklist-mywebserver.html" >checklist-mywebserver.html </a></td><td> lastModified:Sun Feb 16 20:09:35 CST 2014</td><tr><td><a href="/src/CSC435%20SampleFormforAddNum.htm" >CSC435 SampleFormforAddNum.htm </a></td><td> lastModified:Sun Feb 16 18:36:15 CST 2014</td><tr><td><a href="/src/DIR%20WITH%20SPACE" >DIR WITH SPACE </a></td><td> lastModified:Sun Feb 16 19:31:20 CST 2014</td><tr><td><a href="/src/dog.html" >dog.html </a></td><td> lastModified:Sun Feb 16 19:01:00 CST 2014</td><tr><td><a href="/src/http-streams.txt" >http-streams.txt </a></td><td> lastModified:Sun Feb 16 18:50:49 CST 2014</td><tr><td><a href="/src/mime.properties" >mime.properties </a></td><td> lastModified:Sun Feb 16 19:03:31 CST 2014</td><tr><td><a href="/src/MyWebServer.java" >MyWebServer.java </a></td><td> lastModified:Sun Feb 16 20:11:06 CST 2014</td><tr><td><a href="/src/New%20Text%20Document.txt" >New Text Document.txt </a></td><td> lastModified:Sun Feb 16 19:53:05 CST 2014</td><tr><td><a href="/src/RWAR" >RWAR </a></td><td> lastModified:Sun Feb 16 19:02:11 CST 2014</td><tr><td><a href="/src/serverlog.txt" >serverlog.txt </a></td><td> lastModified:Sun Feb 16 20:12:27 CST 2014</td><tr><td><a href="/src/Test.html" >Test.html </a></td><td> lastModified:Sun Feb 16 15:11:38 CST 2014</td><tr><td><a href="/src/test.txtwww" >test.txtwww </a></td><td> lastModified:Sun Feb 16 20:07:51 CST 2014</td><tr><td><a href="/src/Test.wml" >Test.wml </a></td><td> lastModified:Sun Feb 16 19:59:37 CST 2014</td></table></html>
+Exit worker with /127.0.0.1:53671.
+
+
+
+----------------------------------------------------------------------------
+ retrieve a text file  http://127.0.0.1:2540/src/cat.txt
+----------------------------------------------------------------------------
+
+query is GET /src/cat.txt HTTP/1.1
+GET /src/cat.txt HTTP/1.1
+Host: 127.0.0.1:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://127.0.0.1:2540/src
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 20:07:25 CST 2014
+
+queryString is 
+FileSystemService: client request src/cat.txt
+HTTP/1.1 200 OK
+Content-Length:134
+Content-Type:text/plain
+Last-Modified:Sun Feb 16 20:13:43 CST 2014
+Connection: close
+
+this is cat.txt content. line #1
+this is cat.txt content. line #2
+this is cat.txt content. line #3
+this is cat.txt content. line #4
+Exit worker with /127.0.0.1:53687.
+
+
+
+
+----------------------------------------------------------------------------
+ retrieve a html file   http://127.0.0.1:2540/src/dog.html
+----------------------------------------------------------------------------
+
+query is GET /src/dog.html HTTP/1.1
+GET /src/dog.html HTTP/1.1
+Host: 127.0.0.1:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://127.0.0.1:2540/src
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 20:07:27 CST 2014
+
+queryString is 
+FileSystemService: client request src/dog.html
+HTTP/1.1 200 OK
+Content-Length:74
+Content-Type:text/html
+Last-Modified:Sun Feb 16 20:14:17 CST 2014
+Connection: close
+
+<html>
+this is dog.html.
+<a href="http://google.com">google</a>
+</html>
+Exit worker with /127.0.0.1:53698.
+
+
+----------------------------------------------------------------------------
+
+ Testing visit a directory or file with space in file name. http://127.0.0.1:2540/src/DIR%20WITH%20SPACE
+ 
+----------------------------------------------------------------------------
+
+query is GET /src/DIR%20WITH%20SPACE HTTP/1.1
+GET /src/DIR%20WITH%20SPACE HTTP/1.1
+Host: 127.0.0.1:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://127.0.0.1:2540/src
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 19:31:34 CST 2014
+
+queryString is 
+FileSystemService: client request src/DIR WITH SPACE
+HTTP/1.1 200 OK
+Content-Length:111
+Content-Type:text/html
+Last-Modified:Sun Feb 16 20:15:01 CST 2014
+Connection: close
+
+<html><pre/><h1>Index of /src/DIR WITH SPACE</h1><a href="/src">Parent Directory</a> <br><table></table></html>
+Exit worker with /127.0.0.1:53718.
+
+
+
+----------------------------------------------------------------------------
+
+ the fake-cgi function of add number 
+ 
+ http://localhost:2540/cgi/addnums.fake-cgi?person=YourName&num1=4&num2=5
+ 
+----------------------------------------------------------------------------
+
+query is GET /cgi/addnums.fake-cgi?person=YourName&num1=4&num2=5 HTTP/1.1
+GET /cgi/addnums.fake-cgi?person=YourName&num1=4&num2=5 HTTP/1.1
+Host: localhost:2540
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://127.0.0.1:2540/src/CSC435%20SampleFormforAddNum.htm
+Connection: keep-alive
+If-Modified-Since: Sun Feb 16 19:52:30 CST 2014
+
+queryString is ?person=YourName&num1=4&num2=5
+Request Endpoint is /cgi/addnums.fake-cgi<br/>Key person's value is YourName<br/>Key num2's value is 5<br/>Key num1's value is 4<br/>
+person=YourName
+HTTP/1.1 200 OK
+Content-Length:39
+Content-Type:text/html
+Last-Modified:Sun Feb 16 20:16:44 CST 2014
+Connection: close
+
+Dear YourName, the sum of 4 and 5 is 9.
+Exit worker with /0:0:0:0:0:0:0:1:53740.
