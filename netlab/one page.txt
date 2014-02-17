@@ -1,0 +1,31 @@
+
+I installed wireShark and sniffed IP/DNS/HTTP/UDP/SSL traffic on my local Ethernet network, and then I did all the assignment questions.
+
+Here is some particular knowledge that I didn't know before.
+
+IP/UDP and DNS section
+	I learned datagram fragmentation. Ethernet frame is 1500, subtract the 20 size header, the IP MTU(Maximum Transmission Unit) is 1480, and for UDP ,the MTU is 1472. 
+	I also learned that DNS query is reversed. And because my machine is in a windows domain, dns client send out multiple requests for the name, because it didn't know which machine+domain I am refer to.
+	
+Http Section.
+I learned that 
+	For long document, there are a lot of continuation responses.
+	For each authentication, client resend request, with encoded user/pass in the header.
+	
+SSL section
+	After solved all questions in assignment, I visited eBay and amazon https site, to check their security level.
+	
+	I found out that their Cipher Suite is also vulnerable and could get attacked.
+		My browser client asks    Cipher Suite: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 (0xc02b)....
+		Amazon server:	TLS v1.0, Cipher Suite: TLS_RSA_WITH_RC4_128_SHA (0x0005).	
+		EBay server:	TLS v1.0, Cipher Suite: TLS_RSA_WITH_RC4_128_MD5 (0x0004)
+	
+	TLS v1.0 and RC4 128bit are all considered vulnerable now days, 
+	Design in 1999 and 1987,the TLS 1.0 /RC4 are so out of date, people have published papers regarding them. 
+	Succeeded attack to TLS v1.0 3 years ago, and to RC4 about 1 year ago by Dan Bernstein are all public. 
+	
+	Interesting, the known succeed attack to RC4 was steal cookies from PayPal; I think EBay really should improve their security level.
+	
+	I think 256 bit is required to protected user information from been stolen by modern powerful processor,and AES or other better algorithm should be used to replace RC4,though RC4 is 300% faster than AES according some benchmark.
+
+
