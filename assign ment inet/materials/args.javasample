@@ -1,0 +1,16 @@
+
+
+/* Pat Walsh had a good idea for parsing port which
+I am modifying here: */
+
+switch (args.length) {
+ case 1:
+   port=args[0];
+   break;
+ case 2:
+   port=args[0];
+   server=args[1];
+ default:
+   System.out.println("Usage: %java InetClient <port> <server>\n");
+
+   /* then inform which serer we are using */

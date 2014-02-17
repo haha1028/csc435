@@ -1,0 +1,211 @@
+------------------------------------------------from admin client start------------------------------------------------
+Wentao Liu's Joke Admin Client 0.1.
+
+Using server: localhost, Port: 11568
+Available states are :[JokeState, ProverbState, MaintenanceState]
+Enter ChangeState newState to change server state,Shutdown to shutdown svr, (quit) to end: ChangeState JokeState
+OLD:JokeState
+NEW:JokeState
+Available states are :[JokeState, ProverbState, MaintenanceState]
+Enter ChangeState newState to change server state,Shutdown to shutdown svr, (quit) to end: ChangeState ProverbState
+OLD:JokeState
+NEW:ProverbState
+Available states are :[JokeState, ProverbState, MaintenanceState]
+Enter ChangeState newState to change server state,Shutdown to shutdown svr, (quit) to end: ChangeState MaintenanceState
+OLD:ProverbState
+NEW:MaintenanceState
+Available states are :[JokeState, ProverbState, MaintenanceState]
+Enter ChangeState newState to change server state,Shutdown to shutdown svr, (quit) to end: ChangeState ProverbState
+OLD:MaintenanceState
+NEW:ProverbState
+Available states are :[JokeState, ProverbState, MaintenanceState]
+Enter ChangeState newState to change server state,Shutdown to shutdown svr, (quit) to end: Shutdown
+Socket error. Client Terminated
+java.io.IOException: unable to read from server, end of the stream has been reached
+	at JokeClientAdmin.getResponse(JokeClientAdmin.java:181)
+	at JokeClientAdmin.main(JokeClientAdmin.java:140)
+
+	
+------------------------------------------------from admin client end------------------------------------------------
+------------------------------------------------from  client 0 start------------------------------------------------
+Wentao Liu's Joke Client 0.1.
+
+Using clientId: 89229a2c-1b83-4379-8d8f-a701207a3ad7
+Using usePersistConnection: false
+Using server: localhost, Port: 11567
+Enter "SetName yourName" to set your name,(quit) to end: SetName myname
+myname
+-------DEBUG INFORMATION--------ChangeName succeeded, current clientUserName is myname
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+B--JOKE---Why did myname go to the other side? To go to the bar.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: 
+command must not be null or empty
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+C--JOKE---Why did myname go to the bar? To go to the toilet.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+E--JOKE---Why did the  myname  cross the road? Because he wasn't a chicken.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+D--JOKE---Why did myname go to the toilet? Because that's where all the cocks hang out.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+A--JOKE---Why did the myname cross the road? To get to the other side.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+D--JOKE---Why did myname go to the toilet? Because that's where all the cocks hang out.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+A--JOKE---Why did the myname cross the road? To get to the other side.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+B--JOKE---Why did myname go to the other side? To go to the bar.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+A--JOKE---Why did the myname cross the road? To get to the other side.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+C--JOKE---Why did myname go to the bar? To go to the toilet.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+MaintenanceState
+SERVER UNDER MAINTAINCE
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+D--PROVERB---for  myname giving prudence to those who are simple
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+B--PROVERB---for  myname understanding words of insight
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+E--PROVERB---the  myname fear of the Lord is the beginning of knowledge
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+C--PROVERB---for  myname receiving instruction in prudent behavior
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+A--PROVERB---for  myname gaining wisdom and instruction
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+E--PROVERB---the  myname fear of the Lord is the beginning of knowledge
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: 
+------------------------------------------------from  client 0 end------------------------------------------------
+
+------------------------------------------------from  client 1 start------------------------------------------------
+Wentao Liu's Joke Client 0.1.
+
+Using clientId: 89229a2c-1b83-4379-8d8f-a701207a3ad7
+Using usePersistConnection: true
+Using server: localhost, Port: 11567
+Enter "SetName yourName" to set your name,(quit) to end: SetName anothername
+myname
+-------DEBUG INFORMATION--------ChangeName failed or not changed, current clientUserName is myname
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+E--JOKE---Why did the  myname  cross the road? Because he wasn't a chicken.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+C--JOKE---Why did myname go to the bar? To go to the toilet.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+D--JOKE---Why did myname go to the toilet? Because that's where all the cocks hang out.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: QueryNext
+B--JOKE---Why did myname go to the other side? To go to the bar.
+-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------
+Enter QueryNext to query next joke/proverb, (quit) to end: 
+------------------------------------------------from  client 1 end------------------------------------------------
+
+------------------------------------------------from  server start------------------------------------------------
+Swan Liu's Joke server starting up, listening at port 11567.
+
+Swan Liu's Joke Admin Server starting up, listening at port 11568.
+
+createUser :89229a2c-1b83-4379-8d8f-a701207a3ad7 :UserState@3a8978c7
+existedState is UserState@3a8978c7
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59577.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59582.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59587.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59589.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59591.
+existedState is UserState@3a8978c7
+Current State:JokeState
+chooseRandomly re initialize array: [A--JOKE---Why did the %s cross the road? To get to the other side., B--JOKE---Why did %s go to the other side? To go to the bar., C--JOKE---Why did %s go to the bar? To go to the toilet., D--JOKE---Why did %s go to the toilet? Because that's where all the cocks hang out., E--JOKE---Why did the  %s  cross the road? Because he wasn't a chicken.]
+Exit worker with /127.0.0.1:59593.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59595.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59597.
+existedState is UserState@3a8978c7
+existedState is UserState@3a8978c7
+Current State:JokeState
+existedState is UserState@3a8978c7
+Current State:JokeState
+existedState is UserState@3a8978c7
+Current State:JokeState
+chooseRandomly re initialize array: [A--JOKE---Why did the %s cross the road? To get to the other side., B--JOKE---Why did %s go to the other side? To go to the bar., C--JOKE---Why did %s go to the bar? To go to the toilet., D--JOKE---Why did %s go to the toilet? Because that's where all the cocks hang out., E--JOKE---Why did the  %s  cross the road? Because he wasn't a chicken.]
+existedState is UserState@3a8978c7
+Current State:JokeState
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59599.
+existedState is UserState@3a8978c7
+Current State:JokeState
+Exit worker with /127.0.0.1:59622.
+Exit worker with /127.0.0.1:59624.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+Exit worker with /127.0.0.1:59638.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+Exit worker with /127.0.0.1:59649.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+Exit worker with /127.0.0.1:59651.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+Exit worker with /127.0.0.1:59653.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+Exit worker with /127.0.0.1:59655.
+existedState is UserState@3a8978c7
+Current State:ProverbState
+chooseRandomly re initialize array: [A--PROVERB---for  %s gaining wisdom and instruction, B--PROVERB---for  %s understanding words of insight, C--PROVERB---for  %s receiving instruction in prudent behavior, D--PROVERB---for  %s giving prudence to those who are simple, E--PROVERB---the  %s fear of the Lord is the beginning of knowledge]
+Exit worker with /127.0.0.1:59657.
+Exit worker with /127.0.0.1:59568.
+close work [89229a2c-1b83-4379-8d8f-a701207a3ad7]
+java.net.SocketException: socket closed
+Server read error
+	at java.net.DualStackPlainSocketImpl.accept0(Native Method)
+	at java.net.DualStackPlainSocketImpl.socketAccept(DualStackPlainSocketImpl.java:131)
+	at java.net.AbstractPlainSocketImpl.accept(AbstractPlainSocketImpl.java:398)
+	at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:198)
+	at java.net.ServerSocket.implAccept(ServerSocket.java:530)
+	at java.net.ServerSocket.accept(ServerSocket.java:498)
+	at JokeAdminServer.run(JokeServer.java:342)
+java.net.SocketException: socket closed
+	at java.net.DualStackPlainSocketImpl.accept0(Native Method)
+	at java.net.DualStackPlainSocketImpl.socketAccept(DualStackPlainSocketImpl.java:131)
+	at java.net.AbstractPlainSocketImpl.accept(AbstractPlainSocketImpl.java:398)
+	at java.net.PlainSocketImpl.accept(PlainSocketImpl.java:198)
+	at java.net.ServerSocket.implAccept(ServerSocket.java:530)
+	at java.net.ServerSocket.accept(ServerSocket.java:498)
+	at JokeServer.run(JokeServer.java:212)
+	at java.lang.Thread.run(Thread.java:724)
+java.net.SocketException: Socket is closed
+	at java.net.Socket.getInputStream(Socket.java:872)
+	at AdminWorker.run(JokeServer.java:428)
+
+------------------------------------------------from  server start------------------------------------------------

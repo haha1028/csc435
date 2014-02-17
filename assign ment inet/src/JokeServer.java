@@ -1,0 +1,859 @@
+/*--------------------------------------------------------
+
+ 1. Wentao Liu / 01/26/2014:
+
+ 2. Java version used:
+
+ java version "1.7.0_25"
+ Java(TM) SE Runtime Environment (build 1.7.0_25-b17)
+ Java HotSpot(TM) 64-Bit Server VM (build 23.25-b01, mixed mode)
+
+ 3. Precise command-line compilation examples / instructions:
+
+ > javac JokeClient.java
+ > javac JokeServer.java
+ > javac JokeClientAdmin.java
+
+ 4. Precise examples / instructions to run this program:
+
+ MUST start server before you start client/admin client,because of the new feature, persistent connection. I talked about this in 6.a 
+
+ In separate shell windows:
+ First,
+ > java JokeServer
+ Then,
+ > java JokeClient
+ Then,
+ > java JokeClientAdmin
+
+ All acceptable commands are displayed on the various consoles.
+
+ This runs across machines, in which case you have to pass the IP address of
+ the server to the clients. For example, if the server is running at
+ 192.168.0.101 then you would type:
+
+ > java JokeClient 192.168.0.101
+
+
+ 5. List of files needed for running the program.
+
+ a. checklist-joke.html
+ b. JokeClient.java
+ c. JokeServer.java
+ d. JokeClientAdmin.java
+ 
+ 6. Notes:
+
+ a.  client support both short-connection and persistent connection. In short-mode(which is default), client close connection to server after each joke/proverb query. 
+	 But in persist mode ,client connect to server on startup only once, instead of re-connect socket each time. 
+	 Modify  JokeClient.usePersistConnection to true to enable persistent connection. 
+	 Admin-client only support persistent connection.
+ b. support pass client id as arg. 	usage >java JokeClient host clientId. 
+ 	ClientId arg is optional, application will generate one if you don't pass. To pass client id, host must be passed too.  
+ c. support share client id in multiple concurrent connection. eg. more than one client use same client id. 
+ 	Server will send back to every client the userName that was first issued by client using this client id. 
+ 	joke/proverbs are non-repeat and random among all clients with same cient Id.
+ 	no restriction to client mode, can either be short-connection or persist-connection.  
+ d. shutdown command from admin client will cause server to close all active connections between this and other clients/admin clients to server.
+ e. command of quit and shutdown  are changed to strictly equals "quit" and "Shutdown", instead of just contains them. 
+ f.  client can not shutdown server, only admin can. Shutdown command first shutdown admin server, then  shutdown jokeserver. 
+ g. made a few changes to output text format, most time they are same, or very similar.
+ h. client user must enter a name before query joke/proverb. client don't store input userName, instead ,it store verified and accepted userName by server.
+
+ ----------------------------------------------------------*/
+
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+//Get the Input Output libraries
+//Get the Java networking libraries
+
+/**
+ * 
+ * @author swanliu@gmail.com
+ * 
+ */
+enum ServerState {
+	JokeState, ProverbState, MaintenanceState
+}
+
+enum ClientCommandType {
+	QueryNext, SetName
+}
+
+enum AdminCommandType {
+	ChangeState, Shutdown
+}
+
+public class JokeServer implements Runnable {
+
+	/**
+	 * whether to output a lot of debug info to client or not.
+	 * 
+	 */
+	static final boolean debug = false;
+	/**
+	 * how to separare command args
+	 */
+	static String COMMAND_ARGS_SEPARATOR = " ";
+
+	/**
+	 * socket config
+	 */
+	private int q_len = 6; /* Number of requests for OpSys to queue */
+	private int port;
+	private ServerSocket servsock; // listening server socket
+
+	volatile boolean controlSwitch = true; // if shutdown or not.
+
+	private volatile ServerState currentState = ServerState.JokeState;
+
+	/**
+	 * number of workers, and workers
+	 */
+	private AtomicInteger numberOfCurrentActiveWorkers = new AtomicInteger(0);
+	private Map<String, JokeWorker> mapOfWorker = new java.util.concurrent.ConcurrentHashMap<String, JokeWorker>();
+	private ConcurrentHashMap<String, UserState> mapOfUserState = new java.util.concurrent.ConcurrentHashMap<String, UserState>();
+
+	final String[] jokes = { "A--JOKE---Why did the %s cross the road? To get to the other side.", "B--JOKE---Why did %s go to the other side? To go to the bar.",
+			"C--JOKE---Why did %s go to the bar? To go to the toilet.", "D--JOKE---Why did %s go to the toilet? Because that's where all the cocks hang out.",
+			"E--JOKE---Why did the  %s  cross the road? Because he wasn't a chicken." };
+	final String[] proverbs = { "A--PROVERB---for  %s gaining wisdom and instruction", "B--PROVERB---for  %s understanding words of insight",
+			"C--PROVERB---for  %s receiving instruction in prudent behavior", "D--PROVERB---for  %s giving prudence to those who are simple",
+			"E--PROVERB---the  %s fear of the Lord is the beginning of knowledge" };
+
+	/**
+	 * do nothing but store port. start with server with thread.start to begin listen.
+	 * 
+	 * @param port
+	 *            port to listen
+	 */
+	public JokeServer(int port) {
+		this.port = port;
+	}
+
+	/**
+	 * Spawn worker to handle it
+	 * 
+	 * @param sock
+	 *            socket to handle.
+	 */
+	protected void createWorker(Socket sock) {
+
+		String uuid = java.util.UUID.randomUUID().toString();
+
+		JokeWorker worker = new JokeWorker(uuid, sock, this);
+
+		mapOfWorker.put(uuid, worker);
+		worker.start(); // Spawn worker to handle it
+		numberOfCurrentActiveWorkers.incrementAndGet();
+	}
+
+	/**
+	 * remove this finished worker from active workers collections.
+	 * 
+	 * @param worker
+	 *            finished worker.
+	 */
+	protected void workerFinsh(JokeWorker worker) {
+		mapOfWorker.remove(worker.id);
+		numberOfCurrentActiveWorkers.decrementAndGet();
+	}
+
+	/**
+	 * create user state is not exist.
+	 * @param clientId
+	 * @return 
+	 */
+	protected synchronized UserState createUser(String clientId) {
+
+		UserState userState = new UserState(clientId, null, jokes, proverbs);
+		System.out.println("createUser :"+clientId +" :"+userState);
+
+		/**
+		 * putIfAbsent in concurrent hash map returns most recent value of key.
+		 */
+		 mapOfUserState.putIfAbsent(clientId, userState);
+		//System.out.println("return createUser :"+clientId +" :"+userState +"." +mapOfUserState.size() +" "+mapOfUserState.get(clientId));
+		return mapOfUserState.get(clientId);
+	}
+
+	protected synchronized UserState getUser(String clientId) {
+		return mapOfUserState.get(clientId);
+	}
+
+	/**
+	 * open server, start listen.
+	 * 
+	 * @throws IOException
+	 */
+	public void run() {
+
+		try {
+			/**
+			 * open server socket at port.
+			 */
+			servsock = new ServerSocket(port, q_len);
+
+			System.out.println("Swan Liu's Joke server starting up, listening at port " + port + ".\n");
+			/**
+			 * listening while not shutdown.
+			 */
+			while (controlSwitch) {
+				Socket sock = servsock.accept(); // wait for the next client
+
+				/**
+				 * Spawn worker to handle it
+				 */
+				createWorker(sock);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * close server. By close serverSocket, it will cause thread blocked on serversock.accept() throw SocketException and continue.
+	 * 
+	 * This method will call by some worker who received shutdown request
+	 * 
+	 * @throws IOException
+	 */
+	public synchronized void close() throws IOException {
+
+		try {
+			servsock.close();
+		} catch (IOException e) {
+
+		}
+		/**
+		 * shutdown other active clients.
+		 */
+		for (JokeWorker worker : mapOfWorker.values()) {
+
+			System.out.println("close work [" + worker.id + "]");
+			worker.close();
+		}
+
+	}
+
+	/**
+	 * 
+	 * @return number of current active worker.
+	 */
+	public int getWorkers() {
+		return numberOfCurrentActiveWorkers.get();
+	}
+
+	/*
+	 * return current server state. synchronized method.
+	 */
+	protected synchronized ServerState getCurrentState() {
+		return currentState;
+	}
+
+	/**
+	 * 
+	 * @param currentState
+	 *            set current server state. synchronized method.
+	 */
+	protected synchronized void setCurrentState(ServerState currentState) {
+		this.currentState = currentState;
+	}
+
+	public static void main(String a[]) throws IOException {
+
+		int port = 11567;
+
+		JokeServer jokeServer = new JokeServer(port);
+		new Thread(jokeServer).start();
+
+		int adminPort = port + 1;
+		/**
+		 * start admin.
+		 */
+		JokeAdminServer jokeAdminServer = new JokeAdminServer(jokeServer, adminPort);
+		jokeAdminServer.start();
+	}
+
+}
+
+class JokeAdminServer extends Thread {
+	/**
+	 * socket config
+	 */
+	private int q_len = 6; /* Number of requests for OpSys to queue */
+	private int port;
+	private ServerSocket servsock; // listening server socket
+	volatile boolean controlSwitch = true; // if shutdown or not.
+
+	volatile ServerState currentState = ServerState.JokeState;
+
+	/**
+	 * number of workers, and workers
+	 */
+	private AtomicInteger numberOfCurrentActiveWorkers = new AtomicInteger(0);
+	private Map<String, AdminWorker> mapOfWorker = new java.util.concurrent.ConcurrentHashMap<String, AdminWorker>();
+
+	/***
+	 * ref to joke server.
+	 */
+	JokeServer jokeServer;
+
+	/**
+	 * do nothing but store port. call start to start listen.
+	 * 
+	 * @param jokeServer
+	 *            ref to jokeServer
+	 * @param port
+	 *            port to listen
+	 */
+	public JokeAdminServer(JokeServer jokeServer, int port) {
+		this.jokeServer = jokeServer;
+		this.port = port;
+	}
+
+	/**
+	 * open server, start listen.
+	 * */
+	public void run() {
+
+		try {
+			/**
+			 * open server socket at port.
+			 */
+			servsock = new ServerSocket(port, q_len);
+
+			System.out.println("Swan Liu's Joke Admin Server starting up, listening at port " + port + ".\n");
+			/**
+			 * listening while not shutdown.
+			 */
+			while (controlSwitch) {
+				Socket sock = servsock.accept(); // wait for the next client
+
+				/**
+				 * Spawn worker to handle it
+				 */
+				createWorker(sock);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * close server. By close serverSocket, it will cause thread blocked on serversock.accept() throw SocketException and continue.
+	 * 
+	 * This method will call by some worker who received shutdown request
+	 * 
+	 * @throws IOException
+	 */
+	public void close() throws IOException {
+
+		try {
+			servsock.close();
+		} catch (IOException e) {
+
+		}
+		/**
+		 * shutdown other active clients.
+		 */
+		for (AdminWorker worker : mapOfWorker.values()) {
+
+			System.out.println("close work [" + worker.id + "]");
+			worker.close();
+		}
+		this.jokeServer.close();
+	}
+
+	/**
+	 * Spawn worker to handle it
+	 * 
+	 * @param sock
+	 *            socket to handle.
+	 */
+	protected void createWorker(Socket sock) {
+
+		String uuid = java.util.UUID.randomUUID().toString();
+
+		AdminWorker worker = new AdminWorker(uuid, sock, this);
+
+		mapOfWorker.put(uuid, worker);
+		worker.start(); // Spawn worker to handle it
+		numberOfCurrentActiveWorkers.incrementAndGet();
+	}
+
+	/**
+	 * remove this finished worker from active workers collections.
+	 * 
+	 * @param worker
+	 *            finished worker.
+	 */
+	protected void workerFinsh(AdminWorker worker) {
+		mapOfWorker.remove(worker.id);
+		numberOfCurrentActiveWorkers.decrementAndGet();
+	}
+}
+
+class AdminWorker extends Thread {
+	String id; // worker uuid.
+	Socket sock; // Class member, socket, local to Worker.
+	JokeAdminServer jokeAdminServer; // reference to server instance.
+
+	AdminWorker(String id, Socket s, JokeAdminServer jokeAdminServer) {
+		this.id = id;
+		sock = s;
+		this.jokeAdminServer = jokeAdminServer;
+
+	} // Constructor, assign arg s to local sock
+
+	public void run() {
+
+		try {
+
+			while (true) {
+				try {
+					// Get I/O streams in/out from the socket:
+					BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+					PrintStream out = new PrintStream(sock.getOutputStream());
+					/**
+					 * test sock not closed.
+					 */
+					if (sock.isClosed()) {
+						System.out.println("Sock is closed by client.");
+						break;
+					}
+
+					/**
+					 * read client user-input from socket
+					 */
+					String command = in.readLine();
+					// this could happen if client closed socket
+					if (command == null) {
+						break;
+					}
+					/**
+					 * command are separated by COMMAND_ARGS_SEPERATOR, usually space.
+					 */
+					String[] args = command.split(JokeServer.COMMAND_ARGS_SEPARATOR);
+					String commandType = args[0];
+					AdminCommandType adminCommandType = null;
+					try {
+						adminCommandType = AdminCommandType.valueOf(commandType);
+					} catch (Exception e) {
+						e.printStackTrace();
+						String[] result = new String[] { "ERROR :" + e.getMessage(), "ERROR WITH COMMAND:" + command, };
+						printTo(result, out);
+						continue;
+					}
+
+					/**
+					 * deal with ClientCommand.
+					 */
+					switch (adminCommandType) {
+					case ChangeState: {
+						String newState = args[1];
+						changeState(out, newState);
+						break;
+					}
+					case Shutdown: {
+						jokeAdminServer.close();
+						break;
+					}
+					}
+
+				} catch (IOException ioe) {
+					System.out.println("Server read error");
+					ioe.printStackTrace();
+					break;
+				}
+			}
+			System.out.println("Exit worker with " + sock.getRemoteSocketAddress() + ".");
+		} finally {
+			close();
+		}
+
+	}
+
+	/**
+	 * close socket, notify jokeServer.
+	 */
+	public void close() {
+		try {
+			sock.close();
+		} catch (IOException e) {
+		}
+		jokeAdminServer.workerFinsh(this);
+	}
+
+	private void changeState(PrintStream out, String newState) {
+
+		String oldState = jokeAdminServer.jokeServer.getCurrentState().toString();
+		jokeAdminServer.jokeServer.setCurrentState(ServerState.valueOf(newState));
+		String[] result = new String[] { "OLD:" + oldState, "NEW:" + newState };
+		printTo(result, out);
+
+	}
+
+	private void printTo(String[] array, PrintStream out) {
+		for (String content : array) {
+			out.println(content);
+		}
+	}
+}
+
+class UserState {
+	String userName = null;
+
+	String id;
+
+	/**
+	 * data structure to store jokes. implemented the random return algorithm.
+	 */
+	ArrayContentRandomProvider jokeArrayContentRandomProvider;
+	/**
+	 * data structure to store proverbs. implemented the random return algorithm.
+	 */
+	ArrayContentRandomProvider proverbArrayContentRandomProvider;
+
+	UserState(String id, String userName, String[] jokes, String[] proverbs) {
+		this.id = id;
+		this.userName = userName;
+		jokeArrayContentRandomProvider = new ArrayContentRandomProvider(jokes, jokes.length);
+		proverbArrayContentRandomProvider = new ArrayContentRandomProvider(proverbs, proverbs.length);
+	}
+
+	protected synchronized String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * if current user name equals old,set username to newUsername
+	 * 
+	 * @param old
+	 * @param newUserName
+	 * @return true if current user name equals old, and username was newUsername ,or current and old are both null.  otherwise false.
+	 */
+	protected synchronized boolean compareAndSetUserName(String old, String newUserName) {
+		if ((userName==null && old ==null )||userName.equals(old)) {
+			this.userName = newUserName;
+			return true;
+		}
+		return false;
+
+	}
+
+	public synchronized String getId() {
+		return id;
+	}
+
+	protected synchronized void setId(String id) {
+		this.id = id;
+	}
+
+	public synchronized String[] returnNextRandomJoke() {
+		return jokeArrayContentRandomProvider.returnNextRandomContent(getUserName());
+	}
+
+	public synchronized String[] returnNextRandomProverb() {
+		return proverbArrayContentRandomProvider.returnNextRandomContent(getUserName());
+	}
+}
+
+class JokeWorker extends Thread { // Class definition
+
+	String id; // worker uuid.
+	Socket sock; // Class member, socket, local to Worker.
+	JokeServer jokeServer; // reference to server instance.
+
+	UserState userState;
+
+	JokeWorker(String id, Socket s, JokeServer jokeServer) {
+		this.id = id;
+		sock = s;
+		this.jokeServer = jokeServer;
+
+	} // Constructor, assign arg s to local sock
+
+	public void run() {
+
+		try {
+
+			while (true) {
+				try {
+					// Get I/O streams in/out from the socket:
+					BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+					PrintStream out = new PrintStream(sock.getOutputStream());
+					/**
+					 * test sock not closed.
+					 */
+					if (sock.isClosed()) {
+						System.out.println("Sock is closed by client.");
+						break;
+					}
+
+					/**
+					 * read client user-input from socket
+					 */
+					String command = in.readLine();
+					// this could happen if client closed socket
+					if (command == null) {
+						break;
+					}
+					if (jokeServer.getCurrentState() == ServerState.MaintenanceState) {
+						giveMaintenanceStateInfo(out);
+						continue;
+					}
+					/**
+					 * command are separated by COMMAND_ARGS_SEPERATOR, usually space.
+					 */
+					String[] args = command.split(JokeServer.COMMAND_ARGS_SEPARATOR);
+
+					/**
+					 * client id is always sent with all command and at pos 0 .
+					 */
+					String clientId = args[0];
+					/**
+					 * retrive or create user state.
+					 */
+					UserState existedState = jokeServer.getUser(clientId);
+					if (existedState == null) {
+						existedState = jokeServer.createUser(clientId);
+					}
+					System.out.println("existedState is "+existedState);
+					this.userState = existedState;
+
+					/**
+					 * command is at pos 1
+					 */
+					String commandType = args[1];
+					ClientCommandType clientCommandType = null;
+					try {
+						clientCommandType = ClientCommandType.valueOf(commandType);
+					} catch (Exception e) {
+						e.printStackTrace();
+						String[] result = new String[] { "ERROR :" + e.getMessage(), "ERROR WITH COMMAND:" + command, };
+						printTo(result, out);
+						continue;
+					}
+
+					/**
+					 * deal with ClientCommand.
+					 */
+					switch (clientCommandType) {
+					case QueryNext: {
+						queryNext(out);
+						break;
+					}
+					case SetName: {
+						/**
+						 * name is at the 3 position of command line.
+						 */
+						String name = args[2];
+						setName(out, name);
+						break;
+					}
+					}
+
+				} catch (IOException ioe) {
+					//System.out.println("Server read error");
+					//ioe.printStackTrace();
+					break;
+				}
+			}
+			System.out.println("Exit worker with " + sock.getRemoteSocketAddress() + ".");
+		} finally {
+			close();
+		}
+
+	}
+
+	private void setName(PrintStream out, String name) {
+
+		String response = "";
+		String clientUserName =null;
+		
+		
+		/**
+		 * compare and set to avoid concurrent conflict
+		 */
+		if (userState.compareAndSetUserName(null, name)) {
+			clientUserName = userState.getUserName();
+			response = "-------DEBUG INFORMATION--------ChangeName succeeded, current clientUserName is " + clientUserName;
+
+		} else {
+			response = "-------DEBUG INFORMATION--------ChangeName failed or not changed, current clientUserName is " + userState.getUserName();
+		}
+		clientUserName=userState.getUserName();
+		String[] result = new String[] { clientUserName, response, };
+		printTo(result, out);
+	}
+
+	/**
+	 * query next content. server send a proverb or joke or maintain info , according to current state to out.
+	 * 
+	 * @param out
+	 */
+	private void queryNext(PrintStream out) {
+
+		final ServerState serverState = jokeServer.getCurrentState();
+		System.out.println("Current State:" + serverState);
+
+		switch (serverState) {
+		case JokeState: {
+			giveJoke(out);
+			break;
+		}
+		case ProverbState: {
+			giveProverb(out);
+			break;
+		}
+		default: {
+			giveMaintenanceStateInfo(out);
+			break;
+		}
+		}
+
+	}
+
+	/**
+	 * send proverb to client
+	 * 
+	 * @param out
+	 */
+	private void giveProverb(PrintStream out) {
+		/**
+		 * ask provider return next random proverb
+		 */
+		String[] result = userState.returnNextRandomProverb();
+		printTo(result, out);
+	}
+
+	/**
+	 * send joke to client
+	 * 
+	 * @param out
+	 */
+	private void giveJoke(PrintStream out) {
+		/**
+		 * ask provider return next random joke
+		 */
+		String[] result = userState.returnNextRandomJoke();
+		printTo(result, out);
+	}
+
+	/**
+	 * send MaintenanceState Info to client
+	 * 
+	 * @param out
+	 */
+	private void giveMaintenanceStateInfo(PrintStream out) {
+		/**
+		 * ask provider return next random joke
+		 */
+		String[] result = { ServerState.MaintenanceState.toString(), "SERVER UNDER MAINTAINCE" };
+		printTo(result, out);
+	}
+
+	private void printTo(String[] array, PrintStream out) {
+		for (String content : array) {
+			out.println(content);
+		}
+	}
+
+	/**
+	 * close socket, notify jokeServer.
+	 */
+	public void close() {
+		try {
+			sock.close();
+		} catch (IOException e) {
+		}
+		jokeServer.workerFinsh(this);
+	}
+
+}
+
+class ArrayContentRandomProvider {
+	Random random = new Random();
+
+	String[] array;
+	int usedPosition;
+
+	public ArrayContentRandomProvider(String[] array, int usedPosition) {
+
+		this.array = array;
+		this.usedPosition = usedPosition;
+	}
+
+	/**
+	 * @param formatArgs
+	 *            args used to format result.
+	 * @return array , first desired random content, then next element is a debug information,
+	 */
+	String[] returnNextRandomContent(Object... formatArgs) {
+
+		String desp = "-------THIS IS DEBUG INFORMATION, SET DEBUG TO TRUE IN JOKE SVR TO SEE MORE--------";
+		if (JokeServer.debug) {
+			desp = desp + "OLD :" + usedPosition + "," + Arrays.toString(array);
+		}
+		/**
+		 * get a random string to return.
+		 */
+		String result = chooseRandomly();
+		/**
+		 * name substitute
+		 */
+		result = String.format(result, formatArgs);
+		if (JokeServer.debug) {
+			desp = desp + "NEW:" + usedPosition + "," + Arrays.toString(array);
+		}
+		return new String[] { result, desp };
+
+	}
+
+	/**
+	 * Algorithm invariance: for an array : [0,#####, usedPosition,xxxxxx,length], front part: [0 , used) are not used ,end part [used,length) are already used.
+	 * 
+	 * each time pick an index from 0-used and return it, also swap its content to the frontier of end part, to keep invariance.
+	 */
+	private String chooseRandomly() {
+		/**
+		 * if arrays has all been used, re initialize the array. sort is not a must but admin may want check log so sort it to make the object/log more readable.
+		 */
+		if (usedPosition == 0) {
+			usedPosition = array.length;
+			Arrays.sort(array);
+			System.out.println("chooseRandomly re initialize array: " + Arrays.toString(array));
+		}
+		/**
+		 * random select an index from [0,used); use that index
+		 */
+		int choosed = random.nextInt(usedPosition);
+		String result = array[choosed];
+		/*
+		 * move forward usedPosition,
+		 */
+		usedPosition--;
+		/**
+		 * content at the new usedPosition at this time is not used. swap it with the frontier of end part, to keep invariance.
+		 */
+		String temp = array[usedPosition];
+		array[usedPosition] = result;
+		array[choosed] = temp;
+
+		return result;
+
+	}
+}
