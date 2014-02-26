@@ -1,0 +1,11 @@
+// TotOrdered.dat.
+// Any line with two forward slashes is a comment
+// ProcessNum MsgNum Delay-before-message-creation
+1 100 1
+1 101 12
+1 102 13
+2 200 2
+2 202 4
+2 201 7
+3 300 0
+3 301 7

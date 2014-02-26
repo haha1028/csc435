@@ -1,0 +1,164 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252"></head><body>file is: program-TotOrdered
+  <title> CSC 435 </title>
+
+
+1.8
+<font size="1" face="Comic Sans MS">
+<p>Updates: 
+</p><ol>
+<li> none
+</li></ol>
+
+<font size="3" face="Cambria">
+<h2> 
+<center> Final Project <br>
+Totally Ordered Multicasting </center>
+</h2> 
+
+<!--(Watch for possible updates/corrections/version see version number -->
+<!--above) -->
+
+<h3> <a href="http://condor.depaul.edu/elliott/435/hw/programs/checklist-totordered.html"> Checklist </a> </h3>
+
+
+<h2> Overview: </h2>
+
+<ul> 
+
+<li> Here is example <a href="http://condor.depaul.edu/elliott/435/hw/programs/TotOrdered/TotOrdered.java.txt"> Sample Code
+</a> and <a href="http://condor.depaul.edu/elliott/435/hw/programs/TotOrdered/TotOrdered.dat"> Data File </a> to get
+you started. Compile and run the program. See how it is implemented. This is
+simple an quick introduction to queues. Feel free to use any or none of this
+code as you desire.
+</li><li> If I were to write this again, I would use a different design to
+simulate random network delay: I would send all messages to a repeating
+process that simply listened for any messages and then, after a random
+delay, sent them on to their real destination. Such an implementation would
+insulate the rest of the code from the faking of network delays required to make
+this local-only version interesting.
+
+
+</li><li> Note: timing infrastruture is hard! Start early.
+</li><li> I recommend designing with pencil and paper, starting from scratch, and
+integrating pieces of the sample utility file as needed with copy/paste.
+</li><li> Print your name and the name (number) of the process at startup.
+</li><li> Either auto start when third process starts, or accept "start" on
+console of any process to start. Display simple instructions on console!
+</li><li> Use UDP for sending messages
+</li><li> Use the Lamport Totally Ordered Multicast algorithm (as above)
+</li><li> To clarify from the textbook: Process A sends a message to B and C and
+waits for acknowledgments, including from itself. When all three Acks are
+receive by ANY process, the original message is put into its application
+queue according to the (sending) time-stamp of the latest Ack. In this way,
+messages might be passed on in a different order than they were originally
+sent, but will be presented to the application in the same order at each process.
+</li><li> Implement Totally Ordered Multicasting
+</li><li> Exactly three processes communicate
+</li><li> First argument is the number of the process 1,2,3. REQUIRED
+</li><li> If a second argument is present and has the value "debug" (all lower case), it will trigger DEBUG displays, which
+should show the changes in the queues, and annotate the arrival and
+departure of messages.
+</li><li> In standard mode, each time your middleware TOM system finally passes a message to the
+application layer, you must print ONLY the SINGLE LINE stating [APPLICATION
+RECEIVED, the message number, and the message time of send.] NO DEBUG
+MESSAGES. This is necessary for grading.
+</li><li> We will run your programs in both modes at grading time, using various
+data files.
+</li><li> All processes must pass all the messages to the application layer in
+exactly the same, otherwise arbitrary, order. (That is, the actual order
+does not matter as long as it is the same on all processes.)
+</li><li> You must simulate random latency between sending and receiving of messages
+</li><li> The single java executable (for all three processes) must be named
+<strong> TotOrdered.java </strong>
+</li><li> There will be thread synchronization issues. You do not need to solve these,
+but you MUST, in your comments, identify them.
+</li><li> You must read the single data file <strong> TotOrdered.dat:</strong> //
+<i> ProcessNum MsgNum
+DelayBeforeSend </i>&lt;crlf&gt; 1 100 5, etc.
+</li><li> The maximum value for MAXDELAY, simulating network delay, will be 5
+</li><li> See the discussion of clocks below
+</li><li> Your system must work for any valid TotOrdered.dat data file &lt; 100
+lines.
+</li><li> In your zip file, provide a TotOrdered.dat file, and a windows totrun.bat file
+that will start three shells and run your program to completion. Thus I
+should be able to compile your TotOrdered.java file, issue
+"totrun" at the command prompt, and see your running results. To work around
+some coordination problems, you might want to add a pause of three seconds
+before the start of the second and third processes (e.g., "TIMEOUT 3").
+</li></ul>
+
+<h2> Extra Credit: </h2>
+<ul> 
+<li> Use arguments 3 - N as needed.
+</li><li> Extra credit for managing synchronization issues, especially when
+also discussed at the newsgroups.
+</li><li> Extra credit for N-process solution
+</li><li> Exrtra credit for implementing vector clocks.
+</li><li> Serious extra credit for implementing Atomic Totally Ordered
+Multicasting (you must simulate message delivery failure)
+</li><li> Possible extra credit if you provide a nice piece of utility code
+that we link below, useful for other students.
+</li><li> Your own extensions -- give instructions, print on console.
+</li></ul>
+
+<h2> Discussion: </h2> 
+
+<ul>
+
+<li> Clocks:
+
+<ul> 
+
+<li> You must <i> skew </i> your clocks so that all your processes run at
+different speeds.
+
+</li><li> The <i> actual </i> time of a clock tick is set by a sleep value. Set
+this comfortably so that you can watch your system run, but set it very low
+in the version you turn in so that your system runs to completion almost
+immediately when we grade it.
+
+</li><li> Changing the actual time of a clock tick just speeds up, or slows down,
+the running of your system, but otherwise does not affect the way it runs.
+
+</li></ul> <p>
+
+</p></li><li> Possibly more to follow, ad hoc. See the sample code for much discussion.
+
+</li></ul>
+
+<h2> Student Written Utility Code: </h2>
+
+TBD
+
+<h2> Summary </h2>
+
+Each process reads in the messages from the data file, ignoring messages for
+other processes. For each message belonging to a process, the process will send the message to
+the other two processes. The messages are then printed on the console of
+all three processes (that is, simulating the passing of the message to the application
+level of each process). All the messages must print out in the same order on
+each console, representing the ordered application processing of the messages by each
+processes, including the sending process.<p>
+
+You must simulate network delay either at the sending process, by delaying
+the send for a random amount of time, or at the receiving end, by delaying
+the receive. That is, we are not actually sending the messages over a
+network, so we have to fake any significant delay. Otherwise the messages
+being sent from one process to another will arrive immediately.</p><p>
+
+Even though the processes read the messages in from the data file at startup
+time, the messages are not actually "received" into the processes that will
+broadcast them until the time specified in the data file. This simulates
+real world conditions that produce the messages over the course of time. </p><p>
+
+The actual order in which the messages are printed at the three consoles
+does  not matter, as long as the order is the same for all processes.</p><p>
+
+Note that there are some tricky situations that must be handled. For example:
+P1 sends the message MSG100 to P2 and P3. P2 sends the acknolwedgment ACK100
+to P1 and P3. Because of network delay P3 first receives ACK100 then, later,
+receives M100.</p><p>
+
+ 
+</p></font></font></body></html>
