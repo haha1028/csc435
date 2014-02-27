@@ -7,7 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 
- *  jdk7 required.
+ * jdk7 required.
  * 
  * @author swanliu@gmail.com
  * 
@@ -27,18 +26,15 @@ public class TotOrdered {
 	/**
 	 * Customizable Unreliable MulticastSocket. *
 	 * <P>
-	 * DatagramPacket send to this CustomizableUnreliableMulticastSocket first
-	 * have a lostRate of chance to be dropped from being sent. if that datagram
-	 * passed the random check, statistically after avgDelay, it will be sent to
-	 * underlying socket.
+	 * DatagramPacket send to this CustomizableUnreliableMulticastSocket first have a lostRate of chance to be dropped from being sent. if that datagram passed the random check,
+	 * statistically after avgDelay, it will be sent to underlying socket.
 	 * 
 	 * @author swanliu@gmail.com
 	 * 
 	 */
 	static final class CustomizableUnreliableMulticastSocket extends MulticastSocket {
 		/**
-		 * an troubler that randomly drop task , then randomly delay task
-		 * execution.
+		 * an troubler that randomly drop task , then randomly delay task execution.
 		 */
 		UnreliableScheduledThreadPoolExecutor troubler;
 
@@ -50,8 +46,7 @@ public class TotOrdered {
 		 * @param lostRate
 		 *            chance of datagram to be dropped from being sent
 		 * @param avgDelay
-		 *            statistically after avgDelay sent datagram to underlying
-		 *            socket.
+		 *            statistically after avgDelay sent datagram to underlying socket.
 		 * @throws IOException
 		 */
 		public CustomizableUnreliableMulticastSocket(int port, double lostRate, int avgDelay) throws IOException {
@@ -62,17 +57,13 @@ public class TotOrdered {
 		/**
 		 * synchronously send DatagramPacket. wait until sent.
 		 * <P>
-		 * Note: because this call is synchronous, if you didn't call this
-		 * function concurrently, the order of sent packet would be exactly same
-		 * as the caller sequence.
+		 * Note: because this call is synchronous, if you didn't call this function concurrently, the order of sent packet would be exactly same as the caller sequence.
 		 * <P>
-		 * To simulate random send sequence , either concurrent call this
-		 * function or use asynchronously sendAndGetFuture instead.
+		 * To simulate random send sequence , either concurrent call this function or use asynchronously sendAndGetFuture instead.
 		 * <P>
 		 * first compute against lostRate. if didn't pass, will be ignored.
 		 * <P>
-		 * if passed, statistically after avgDelay, it will be sent to
-		 * underlying socket
+		 * if passed, statistically after avgDelay, it will be sent to underlying socket
 		 * 
 		 */
 		@Override
@@ -94,24 +85,18 @@ public class TotOrdered {
 
 		/**
 		 * 
-		 * asynchronously send packet, and return a ScheduledFuture reference to
-		 * the action.
+		 * asynchronously send packet, and return a ScheduledFuture reference to the action.
 		 * <P>
 		 * random send sequence. not the order of calling sequence.
 		 * 
-		 * @return delayed result-bearing action ,that can be cancelled. read
-		 *         about ScheduledFuture for more information.
+		 * @return delayed result-bearing action ,that can be cancelled. read about ScheduledFuture for more information.
 		 *         <P>
-		 *         Note: CustomizableUnreliableMulticastSocket is not aware of
-		 *         this future object.
+		 *         Note: CustomizableUnreliableMulticastSocket is not aware of this future object.
 		 *         <P>
-		 *         So if you use this returned future object to call
-		 *         cancel(true) to cancel task,
-		 *         CustomizableUnreliableMulticastSocket will not be able to
-		 *         keep accurate lostRate or avgDelay.
+		 *         So if you use this returned future object to call cancel(true) to cancel task, CustomizableUnreliableMulticastSocket will not be able to keep accurate lostRate
+		 *         or avgDelay.
 		 *         <P>
-		 *         if you use this returned future and get its result,send
-		 *         sequence become orderly again.
+		 *         if you use this returned future and get its result,send sequence become orderly again.
 		 */
 		public ScheduledFuture<IOException> sendAndGetFuture(final DatagramPacket p) {
 
@@ -164,8 +149,10 @@ public class TotOrdered {
 	}
 
 	public static void main(String[] args) throws Exception {
-		// testUnreliableScheduledThreadPoolExecutor(args);
-		testUnreliableMultiCast(args);
+		while (true) {
+			testUnreliableScheduledThreadPoolExecutor(args);
+		}
+		// testUnreliableMultiCast(args);
 	}
 
 	public static void testUnreliableMultiCast(String[] args) throws Exception {
@@ -254,12 +241,15 @@ public class TotOrdered {
 	/**
 	 * an Executor that randomly drop task , then randomly delay task execution.
 	 * <P>
-	 * task submitted to this Executor first have a lostRate of chance to be
-	 * dropped from being executed.
+	 * task submitted to this Executor first have a lostRate of chance to be dropped from being executed.
 	 * <P>
-	 * if that task passed the random check, statistically after avgDelay, it
-	 * will be executed.
+	 * if that task passed the random check, statistically after avgDelay, it will be executed.
 	 * <P>
+	 * <P>
+	 * task are expected be executed within twice of avgDelay time, but this is not guaranteed. if task exec is very slow or too many task were scheduled, the actual avg dealy
+	 * could be much longer than expected.
+	 * <P>
+	 * It is caller's responsibility to check run time status to ensure the executor is running as expected
 	 * 
 	 * @author swanliu@gmail.com
 	 * 
@@ -286,11 +276,10 @@ public class TotOrdered {
 		private int maxDelay = 0;
 
 		/**
-		 * actual pool to exec task. poolSize set to 4 because most machine are
-		 * quad core.
+		 * actual pool to exec task.
 		 */
-		private int poolSize = 4;
-		private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(poolSize);
+		private int poolSize = Runtime.getRuntime().availableProcessors();;
+		ScheduledThreadPoolExecutor[] scheduledThreadPoolExecutors = new ScheduledThreadPoolExecutor[poolSize];
 
 		final AtomicLong finishTaskCount = new AtomicLong();
 		final AtomicLong totalDelayedTime = new AtomicLong();
@@ -311,31 +300,39 @@ public class TotOrdered {
 		 * @param avgDelay
 		 *            . avgDelay to actually call task.
 		 *            <P>
-		 *            task are guaranteed will executed within twice of avgDelay
-		 *            time
+		 *            task are expected be executed within twice of avgDelay time, but this is not guaranteed. if task exec is very slow or too many task were scheduled, the actual
+		 *            avg dealy could be much longer than expected.
+		 *            <P>
+		 *            It is caller's responsibility to check totalDelayedTime to ensure the Executor is running as expected
 		 */
 		public UnreliableScheduledThreadPoolExecutor(double lostRate, int avgDelay) {
 
 			this.avgDelay = avgDelay;
 			this.maxDelay = avgDelay * 2;
 			this.lostRate = lostRate;
+			for (int i = 0; i < scheduledThreadPoolExecutors.length; i++) {
+				ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(poolSize);
+				scheduledThreadPoolExecutors[i] = scheduledThreadPoolExecutor;
+			}
 		}
 
 		/**
-		 * Initiates an orderly shutdown in which previously submitted tasks are
-		 * executed, but no new tasks will be accepted. Blocks until all tasks
-		 * have completed execution after a shutdown request, or the timeout
-		 * occurs, or the current thread is interrupted, whichever happens
-		 * first.
+		 * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be accepted. Blocks until all tasks have completed execution after
+		 * a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
 		 * 
 		 */
 		public void shutdownAndAwaitTermination() {
-			scheduledThreadPoolExecutor.shutdown();
-			try {
-				long timeout = 1000;
-				scheduledThreadPoolExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			for (ScheduledThreadPoolExecutor scheduledThreadPoolExecutor : scheduledThreadPoolExecutors) {
+				scheduledThreadPoolExecutor.shutdown();
+
+			}
+			for (ScheduledThreadPoolExecutor scheduledThreadPoolExecutor : scheduledThreadPoolExecutors) {
+				try {
+					long timeout = 10000;
+					scheduledThreadPoolExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -349,8 +346,7 @@ public class TotOrdered {
 
 		/**
 		 * 
-		 * @return tasks already executed. does not contain those have been
-		 *         dropped.
+		 * @return tasks already executed. does not contain those have been dropped.
 		 */
 		public long getFinishTaskCount() {
 			return finishTaskCount.get();
@@ -374,29 +370,28 @@ public class TotOrdered {
 		 * @return number of task that are pending.
 		 */
 		public int getQueueSize() {
-			return scheduledThreadPoolExecutor.getQueue().size();
+			int size = 0;
+			for (ScheduledThreadPoolExecutor scheduledThreadPoolExecutor : scheduledThreadPoolExecutors) {
+				size += scheduledThreadPoolExecutor.getQueue().size();
+
+			}
+			return size;
 		}
 
 		/**
 		 * 
-		 * submit a task to exec. this task will be executed statistically after
-		 * avgDelay and have a lostRate of chance to be dropped from being
-		 * executed
+		 * submit a task to exec. this task will be executed statistically after avgDelay and have a lostRate of chance to be dropped from being executed
 		 * 
 		 * @param task
 		 *            function to exec .
 		 *            <P>
-		 *            task are guaranteed will executed within twice of avgDelay
-		 *            time if was not dropped.
+		 *            task are guaranteed will executed within twice of avgDelay time if was not dropped.
 		 * @return ScheduledFuture that can be used to extract result or cancel.
 		 *         <P>
-		 *         Note: UnreliableScheduledThreadPoolExecutor is not aware of
-		 *         this future object.
+		 *         Note: UnreliableScheduledThreadPoolExecutor is not aware of this future object.
 		 *         <P>
-		 *         So if you use this returned future object to call
-		 *         cancel(true) to cancel task,
-		 *         UnreliableScheduledThreadPoolExecutor will not be able to
-		 *         keep accurate lostRate or avgDelay.
+		 *         So if you use this returned future object to call cancel(true) to cancel task, UnreliableScheduledThreadPoolExecutor will not be able to keep accurate lostRate
+		 *         or avgDelay.
 		 */
 		public <T> ScheduledFuture<T> submit(final Callable<T> task) {
 
@@ -412,6 +407,7 @@ public class TotOrdered {
 			}
 
 			final long scheduledSendTime = delay + System.currentTimeMillis();
+			ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = pickScheduledThreadPoolExecutor(delay);
 			ScheduledFuture<T> future = scheduledThreadPoolExecutor.schedule(new Callable<T>() {
 				@Override
 				public T call() throws Exception {
@@ -426,6 +422,12 @@ public class TotOrdered {
 			}, delay, TimeUnit.MILLISECONDS);
 
 			return future;
+		}
+
+		ScheduledThreadPoolExecutor pickScheduledThreadPoolExecutor(long scheduledSendTime) {
+			int index = (int) (scheduledSendTime % scheduledThreadPoolExecutors.length);
+			return scheduledThreadPoolExecutors[index];
+
 		}
 	}
 
@@ -451,44 +453,56 @@ public class TotOrdered {
 		}
 		final Receiver receiver = new Receiver();
 
-		int nThreads = 8;
-		final int eachThreadTask = 2 << 18;
+		int nThreads = 256;
+		final int eachThreadTask = 2 << 17;
 		final int N = nThreads * eachThreadTask;
 
 		long cost = System.currentTimeMillis();
-
-		ExecutorService service = Executors.newFixedThreadPool(nThreads);
+		final CountDownLatch endSignal = new CountDownLatch(nThreads);
+		final CountDownLatch startSignal = new CountDownLatch(1);
+		int poolSize = 4;
+		ExecutorService service = Executors.newFixedThreadPool(poolSize);
 		for (int i = 0; i < nThreads; i++) {
-			Future<?> future = service.submit(new Runnable() {
+			service.submit(new Runnable() {
 
 				@Override
 				public void run() {
-					for (int i = 0; i < eachThreadTask; i++) {
-						pool.submit(new Callable<Void>() {
-							private long orignalTime = System.currentTimeMillis();
+					try {
+						startSignal.await();
+						for (int i = 0; i < eachThreadTask; i++) {
+							pool.submit(new Callable<Void>() {
+								private long orignalTime = System.currentTimeMillis();
 
-							@Override
-							public Void call() throws Exception {
-								receiver.receive(orignalTime);
-								return null;
-							}
+								@Override
+								public Void call() throws Exception {
+									receiver.receive(orignalTime);
+									return null;
+								}
 
-						});
+							});
+						}
+						endSignal.countDown();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
 				}
 
 			});
-			future.get();
+
 		}
+		startSignal.countDown();
+		endSignal.await();
 		service.shutdown();
 
 		pool.shutdownAndAwaitTermination();
+
 		double actualLostRate = (N - receiver.count.get()) / (N * 1.0);
 		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get();
-
+		System.out.println("UnreliableScheduledThreadPoolExecutor: N=[" + N + "] receiver.count=[" + receiver.count + "]  pool.getFinishTaskCount=[" + pool.getFinishTaskCount()
+				+ "] pool.getFailedTaskCount=[" + pool.getFailedTaskCount() + "]pool.getQueueSize=[" + pool.getQueueSize() + "]");
 		System.out.println("UnreliableScheduledThreadPoolExecutor: actualLostRate=[" + actualLostRate + "] expectLostRate=[" + lostRate + "] actualAvgDelay=[" + actualAvgDelay
 				+ "] expectAvgDelay=[" + avgDelay + "]");
 		cost = System.currentTimeMillis() - cost;
-		// System.out.println("cost=[" + cost + "]");
+		System.out.println("cost=[" + cost + "]");
 	}
 }
