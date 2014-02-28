@@ -17,9 +17,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * an ExecutorService that randomly drop task , then add randomly delay to task execution time.
+ * an ExecutorService that schedule task with a random delay, and randomly drop task from being executed when the task is put to execution, .
  * <P>
- * The randomly delay is no more than twice of avgDelay time, but actually time before task  is executed is not guaranteed.
+ * The randomly delay is no more than twice of avgDelay time, but actually time before task is executed is not guaranteed.
  * <P>
  * If task is very slow or too many task are scheduled, there could be lag.
  * <P>

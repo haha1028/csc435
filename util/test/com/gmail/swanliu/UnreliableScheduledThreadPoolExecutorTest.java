@@ -201,7 +201,7 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 		Assert.assertEquals("lost submited task", N, finished + failed);
 
 		double actualLostRate = (N - receiver.count.get()) / (N * 1.0);
-		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get() - pool.getLag();
+		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get();
 		double expectAvgDelay = timeUnit.toMillis(avgDelay);
 
 		double lostRateRelatedError = Math.abs(actualLostRate / lostRate);
