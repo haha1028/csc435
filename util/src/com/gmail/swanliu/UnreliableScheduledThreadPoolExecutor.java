@@ -78,13 +78,11 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 	private boolean TERMINATED = false;
 	private boolean SHUTDOWN = false;
 
-
-
 	/**
 	 * default avg dealy and default lostRate.
 	 */
 	public UnreliableScheduledThreadPoolExecutor() {
-
+		this(0, 0, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -232,7 +230,7 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 			}
 		};
 		final long delay = this.checkAndGetDelay();
-		ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = pickScheduledThreadPoolExecutor(scheduledAt+delay);
+		ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = pickScheduledThreadPoolExecutor(scheduledAt + delay);
 		return scheduledThreadPoolExecutor.schedule(callable, delay, TimeUnit.MILLISECONDS);
 
 	}
@@ -266,7 +264,7 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 		final long delay = this.checkAndGetDelay();
 
 		final long scheduledAt = System.currentTimeMillis();
-		final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = pickScheduledThreadPoolExecutor(scheduledAt+delay);
+		final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = pickScheduledThreadPoolExecutor(scheduledAt + delay);
 		Callable<T> callable = new Callable<T>() {
 			@Override
 			public T call() throws Exception {
@@ -352,7 +350,7 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 			 * adjust delay time according to lag.
 			 */
 			long lag = getLag();
-			delay = delay - 2*lag;
+			delay = delay - 2 * lag;
 			if (delay < 0) {
 				delay = 0;
 			}

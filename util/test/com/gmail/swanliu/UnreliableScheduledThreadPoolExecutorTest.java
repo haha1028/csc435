@@ -27,8 +27,7 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	}
 
 	/**
-	 * run UnreliableScheduledThreadPoolExecutor
-	 * 
+	 * testVeryLowLostAndDelay
 	 */
 	@Test
 	public void testVeryLowLostAndDelay() throws Exception {
@@ -53,8 +52,7 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	}
 
 	/**
-	 * run UnreliableScheduledThreadPoolExecutor
-	 * 
+	 * testLowLostAndDelay
 	 */
 	@Test
 	public void testLowLostAndDelay() throws Exception {
@@ -79,8 +77,7 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	}
 
 	/**
-	 * run UnreliableScheduledThreadPoolExecutor
-	 * 
+	 * testHighLostAndDelay
 	 */
 	@Test
 	public void testHighLostAndDelay() throws Exception {
@@ -105,28 +102,25 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 
 	private void assertPool(double lostRate, int avgDelay, TimeUnit timeUnit, final int N, final AtomicLong submittedCount, final Receiver receiver,
 			final UnreliableScheduledThreadPoolExecutor pool) {
+
 		long finished = pool.getFinishTaskCount();
 		long failed = pool.getFailedTaskCount();
+
+		Assert.assertEquals("lost finished task", receiver.count.get(), pool.getFinishTaskCount());
+
+		Assert.assertEquals("submit task error", N, submittedCount.get());
+
+		Assert.assertEquals("lost submited task", N, finished + failed);
+
+		Assert.assertEquals("not all task finished ", 0, pool.getQueueSize());
+
 		double actualLostRate = (N - receiver.count.get()) / (N * 1.0);
 		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get();
 
 		double rateError = Math.abs(actualLostRate / lostRate - 1);
 		double delayError = Math.abs(actualAvgDelay / timeUnit.toMillis(avgDelay) - 1);
 
-		System.out.println("UnreliableScheduledThreadPoolExecutor: N=[" + N + "] receiver.count=[" + receiver.count + "]  pool.getFinishTaskCount=[" + pool.getFinishTaskCount()
-				+ "] pool.getFailedTaskCount=[" + pool.getFailedTaskCount() + "]pool.getQueueSize=[" + pool.getQueueSize() + "]");
-		System.out.println("UnreliableScheduledThreadPoolExecutor: actualLostRate=[" + actualLostRate + "] expectLostRate=[" + lostRate + "] actualAvgDelay=[" + actualAvgDelay
-				+ "] expectAvgDelay=[" + timeUnit.toMillis(avgDelay) + "] rateError=[" + rateError + "] delayError=[" + delayError + "]");
-
-		Assert.assertEquals(receiver.count.get(), pool.getFinishTaskCount());
-
-		Assert.assertEquals(N, submittedCount.get());
-
-		Assert.assertEquals(N, finished + failed);
-
-		Assert.assertEquals(0, pool.getQueueSize());
 		double precision = 0.05;
-
 		Assert.assertTrue("lost rate  not good [" + rateError + "]", rateError < precision);
 		Assert.assertTrue("delay not good [" + delayError + "]", avgDelay - actualAvgDelay < 1 || delayError < precision);
 	}
