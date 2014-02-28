@@ -1,0 +1,28 @@
+<html>
+<h3>My Steps</h3>
+<span>
+
+Downloaded  mimer-data.xyz , put it into my server directory. <br/> 
+Modified mywebserver,modified its mime.propties ,let it treat .xyz as mime type application/xyz. Failed first time, because xyz is a known mime type in my configuration, so I removed old configuration, let svr return xyz with my new mime type <br/> 
+Downloaded shim.bat. <br/>
+Use Firefox to get mimer-data.xyz from my web server . <br/>
+When Firefox ask me what to do with this xyz file, navigated to shim.bat and choose use shim.bat to open it. <br/> <br/> <br/>
+Downloaded BCClient and Handler,  try read and understood them. <br/>
+	1.Handler is called in shim , will handle file. I think I don't need sample code, I will write Handler part on my own. <br/>
+	2.BCClient has two function, one function is completed, sending file content, another is read input file name, just has skeleton code. <br/> <br/> <br/>
+Downloaded BCWorker and BCLooper, read and understood them. Put them into MyWebServer,modified them and let it run. <br/>
+	1.BCLooper is listent on port and will let BCWorker handle client socket. <br/>
+	2.BCWorker will unmarshall orignal content from xml that was readed from socket,   and print orignal content to console. <br/> <br/>
+Created BCHandler, copied and modified BCClient in the BCHandler. <br/>
+Don't like the idea of manipulate/send/receive file content using custom java object(MyDataArray) based on xml/socket, so I modified BCHandler/BCWorker/BCClient, let them send/receive file content as list of string.<br/> <br/> <br/>
+Modified shim.bat, let shim.bat call BCHandler<br/>
+Modified BCHandler, let BCHandler read input filename, transform input file content into xml and store xml in disk, then send xml content to server. <br/> <br/> <br/>
+ Modified safety check.Removed line limit, it's vulnerable, if some one put a very long line in input file. Instead, added another check: Now if the input file size is too large , BCHandler will refuse to process it. <br/> <br/> <br/>
+Use Firefox to get mimer-data.xyz from my web server, when prompt, choose open it with shim.shim called BCHandler ,stored xmlfile in disk, and sent xml content to server. Server printed xml content and unmarshalled content in console. <br/> <br/> <br/>
+
+Check stored xml file in disk and server console, ensure them matches designated string <br/>
+
+
+</span>
+<h3>Finish</h3>
+</html>
