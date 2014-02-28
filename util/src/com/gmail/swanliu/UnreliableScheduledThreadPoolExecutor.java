@@ -17,17 +17,13 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * an ExecutorService that randomly drop task , then randomly delay task execution.
+ * an ExecutorService that randomly drop task , then add randomly delay to task execution time.
  * <P>
- * task submitted to this Executor first have a lostRate of chance to be dropped from being executed.
+ * The randomly delay is no more than twice of avgDelay time, but actually time before task  is executed is not guaranteed.
  * <P>
- * if that task passed the random check, statistically after avgDelay, it will be executed.
+ * If task is very slow or too many task are scheduled, there could be lag.
  * <P>
- * <P>
- * task are expected be executed within twice of avgDelay time, but this is not guaranteed. if task exec is very slow or too many task were scheduled, the actual avg dealy could be
- * much longer than expected.
- * <P>
- * It is caller's responsibility to check run time status to ensure the executor is running as expected
+ * It is caller's responsibility to check run time status such as getLag==0 to ensure the executor is running as expected
  * 
  * @author Wentao Liu
  * 
@@ -209,10 +205,6 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 	 */
 	@Override
 	public <T> ScheduledFuture<T> submit(final Callable<T> task) {
-		if (shouldDrop()) {
-			taskDropped();
-			return null;
-		}
 
 		final long scheduledAt = System.currentTimeMillis();
 
@@ -220,6 +212,10 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 			@Override
 			public T call() throws Exception {
 				try {
+					if (shouldDrop()) {
+						taskDropped();
+						return null;
+					}
 					statFinishedTask(scheduledAt);
 					T t = task.call();
 					return t;
@@ -257,10 +253,6 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 	@Override
 	public <T> Future<T> submit(final Runnable task, final T result) {
 
-		if (shouldDrop()) {
-			taskDropped();
-			return null;
-		}
 		final long delay = this.checkAndGetDelay();
 
 		final long scheduledAt = System.currentTimeMillis();
@@ -268,6 +260,10 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 		Callable<T> callable = new Callable<T>() {
 			@Override
 			public T call() throws Exception {
+				if (shouldDrop()) {
+					taskDropped();
+					return null;
+				}
 				statFinishedTask(scheduledAt);
 
 				scheduledThreadPoolExecutor.execute(task);
@@ -369,10 +365,10 @@ public final class UnreliableScheduledThreadPoolExecutor implements ExecutorServ
 	 * @return current delay - expect delay.
 	 */
 	long getLag() {
-		long lag = (this.getTotalDelayedTime() / (this.getFinishTaskCount() + 1)) - this.maxDelay / 2;
-		if (lag < 0) {
-			lag = 0;
-		}
+		long currentAvgDelay = (long) (1.0 * getTotalDelayedTime() / (this.getFinishTaskCount() + 1));
+		long expectAvgDelay = this.maxDelay / 2;
+		long lag = currentAvgDelay - expectAvgDelay;
+
 		return lag;
 	}
 
