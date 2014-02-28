@@ -14,10 +14,20 @@ import org.junit.Test;
 
 public class UnreliableScheduledThreadPoolExecutorTest {
 
+	int poolSize = Runtime.getRuntime().availableProcessors();
+
+	/**
+	 * keep record of number of successfully called task , and  their delay time before call.
+	 *
+	 */
 	static class Receiver {
 		AtomicInteger count = new AtomicInteger();
 		AtomicLong delayedTime = new AtomicLong();
 
+		/**
+		 * 
+		 * @param orignalTime the time that task was submit to pool.
+		 */
 		public void receive(long orignalTime) {
 
 			count.incrementAndGet();
@@ -33,21 +43,10 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	public void testVeryLowLostAndDelay() throws Exception {
 		double lostRate = 0.01;
 		int avgDelay = 5;
-		int poolSize = 4;
 		TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-
 		int nThreads = 256;
-
 		final int eachThreadTask = 2 << 14;
-		final int N = nThreads * eachThreadTask;
-
-		final AtomicLong submittedCount = new AtomicLong();
-
-		final Receiver receiver = new Receiver();
-
-		final UnreliableScheduledThreadPoolExecutor pool = testPool(lostRate, avgDelay, poolSize, timeUnit, nThreads, eachThreadTask, submittedCount, receiver);
-
-		assertPool(lostRate, avgDelay, timeUnit, N, submittedCount, receiver, pool);
+		testPool(lostRate, avgDelay, timeUnit, nThreads, eachThreadTask);
 
 	}
 
@@ -58,22 +57,10 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	public void testLowLostAndDelay() throws Exception {
 		double lostRate = 0.1;
 		int avgDelay = 25;
-		int poolSize = 4;
 		TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-
 		int nThreads = 256;
-
 		final int eachThreadTask = 2 << 14;
-		final int N = nThreads * eachThreadTask;
-
-		final AtomicLong submittedCount = new AtomicLong();
-
-		final Receiver receiver = new Receiver();
-
-		final UnreliableScheduledThreadPoolExecutor pool = testPool(lostRate, avgDelay, poolSize, timeUnit, nThreads, eachThreadTask, submittedCount, receiver);
-
-		assertPool(lostRate, avgDelay, timeUnit, N, submittedCount, receiver, pool);
-
+		testPool(lostRate, avgDelay, timeUnit, nThreads, eachThreadTask);
 	}
 
 	/**
@@ -83,56 +70,22 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 	public void testHighLostAndDelay() throws Exception {
 		double lostRate = 0.8;
 		int avgDelay = 4;
-		int poolSize = 4;
 		TimeUnit timeUnit = TimeUnit.SECONDS;
-
 		int nThreads = 256;
-
 		final int eachThreadTask = 2 << 14;
-		final int N = nThreads * eachThreadTask;
-
-		final AtomicLong submittedCount = new AtomicLong();
-
-		final Receiver receiver = new Receiver();
-
-		final UnreliableScheduledThreadPoolExecutor pool = testPool(lostRate, avgDelay, poolSize, timeUnit, nThreads, eachThreadTask, submittedCount, receiver);
-		assertPool(lostRate, avgDelay, timeUnit, N, submittedCount, receiver, pool);
-
+		testPool(lostRate, avgDelay, timeUnit, nThreads, eachThreadTask);
 	}
 
-	private void assertPool(double lostRate, int avgDelay, TimeUnit timeUnit, final int N, final AtomicLong submittedCount, final Receiver receiver,
-			final UnreliableScheduledThreadPoolExecutor pool) {
+	private void testPool(double lostRate, int avgDelay, TimeUnit timeUnit, int nThreads, final int eachThreadTask) throws InterruptedException {
 
-		long finished = pool.getFinishTaskCount();
-		long failed = pool.getFailedTaskCount();
-
-		Assert.assertEquals("lost finished task", receiver.count.get(), pool.getFinishTaskCount());
-
-		Assert.assertEquals("submit task error", N, submittedCount.get());
-
-		Assert.assertEquals("lost submited task", N, finished + failed);
-
-		Assert.assertEquals("not all task finished ", 0, pool.getQueueSize());
-
-		double actualLostRate = (N - receiver.count.get()) / (N * 1.0);
-		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get();
-
-		double rateError = Math.abs(actualLostRate / lostRate - 1);
-		double delayError = Math.abs(actualAvgDelay / timeUnit.toMillis(avgDelay) - 1);
-
-		double precision = 0.05;
-		Assert.assertTrue("lost rate  not good [" + rateError + "]", rateError < precision);
-		Assert.assertTrue("delay not good [" + delayError + "]", avgDelay - actualAvgDelay < 1 || delayError < precision);
-	}
-
-	private UnreliableScheduledThreadPoolExecutor testPool(double lostRate, int avgDelay, int poolSize, TimeUnit timeUnit, int nThreads, final int eachThreadTask,
-			final AtomicLong submittedCount, final Receiver receiver) throws InterruptedException {
-		final CountDownLatch endSignal = new CountDownLatch(nThreads);
-		final CountDownLatch startSignal = new CountDownLatch(1);
+		final UnreliableScheduledThreadPoolExecutor pool = new UnreliableScheduledThreadPoolExecutor(lostRate, avgDelay, timeUnit);
 
 		final ExecutorService submitTaskToPoolService = Executors.newFixedThreadPool(poolSize);
 
-		final UnreliableScheduledThreadPoolExecutor pool = new UnreliableScheduledThreadPoolExecutor(lostRate, avgDelay, timeUnit);
+		final Receiver receiver = new Receiver();
+		final AtomicLong submittedCount = new AtomicLong();
+		final CountDownLatch endSignal = new CountDownLatch(nThreads);
+		final CountDownLatch startSignal = new CountDownLatch(1);
 
 		for (int i = 0; i < nThreads; i++) {
 			submitTaskToPoolService.submit(new Runnable() {
@@ -178,8 +131,7 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 						break;
 					}
 
-					double currentDelay = pool.getTotalDelayedTime() / (pool.getFinishTaskCount() + 1);
-					System.out.println("currentDelay =[" + currentDelay + "] currentLag= [" + pool.getLag() + "]");
+					// System.out.println("currentDelay =[" + (pool.getTotalDelayedTime() / (pool.getFinishTaskCount() + 1)) + "] currentLag= [" + pool.getLag() + "]");
 				}
 			}
 		});
@@ -195,7 +147,34 @@ public class UnreliableScheduledThreadPoolExecutorTest {
 		pool.awaitTermination(30, TimeUnit.SECONDS);
 
 		report.interrupt();
-		return pool;
+
+		final int N = nThreads * eachThreadTask;
+		assertPoolBenchmarkStatus(lostRate, avgDelay, timeUnit, N, submittedCount, receiver, pool);
+	}
+
+	private void assertPoolBenchmarkStatus(double lostRate, int avgDelay, TimeUnit timeUnit, final int N, final AtomicLong submittedCount, final Receiver receiver,
+			final UnreliableScheduledThreadPoolExecutor pool) {
+
+		long finished = pool.getFinishTaskCount();
+		long failed = pool.getFailedTaskCount();
+
+		Assert.assertEquals("lost finished task", receiver.count.get(), pool.getFinishTaskCount());
+
+		Assert.assertEquals("submit task error", N, submittedCount.get());
+
+		Assert.assertEquals("lost submited task", N, finished + failed);
+
+		Assert.assertEquals("not all task finished ", 0, pool.getQueueSize());
+
+		double actualLostRate = (N - receiver.count.get()) / (N * 1.0);
+		double actualAvgDelay = receiver.delayedTime.get() * 1.0 / receiver.count.get();
+
+		double rateError = Math.abs(actualLostRate / lostRate - 1);
+		double delayError = Math.abs(actualAvgDelay / timeUnit.toMillis(avgDelay) - 1);
+
+		double precision = 0.05;
+		Assert.assertTrue("lost rate  not good [" + rateError + "]", rateError < precision);
+		Assert.assertTrue("delay not good [" + delayError + "]", avgDelay - actualAvgDelay < 1 || delayError < precision);
 	}
 
 	@Test
